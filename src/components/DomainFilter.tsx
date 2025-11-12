@@ -7,13 +7,13 @@ type Domain = "All" | Project["domain"];
 interface DomainFilterProps {
     activeDomain: Domain;
     onSelectDomain: (domain: Domain) => void;
-    onAddProject: () => void;
+    onAddProjectClick: () => void; // Changed from onAddProject
 }
 
 const DomainFilter: React.FC<DomainFilterProps> = ({
     activeDomain,
     onSelectDomain,
-    onAddProject,
+    onAddProjectClick,
 }) => {
     const domains: Domain[] = [
         "All",
@@ -28,13 +28,13 @@ const DomainFilter: React.FC<DomainFilterProps> = ({
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold">Your Projects</h2>
                 <button
-                    onClick={onAddProject}
+                    onClick={onAddProjectClick}
                     className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
                 >
                     + Add Project
                 </button>
             </div>
-            <div className="flex space-x-2 mt-2 border-b border-gray-700 pb-4">
+            <div className="flex flex-wrap gap-2 mt-2 border-b border-gray-700 pb-4">
                 {domains.map((domain) => (
                     <button
                         key={domain}
