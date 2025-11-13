@@ -1,9 +1,68 @@
 // src/components/ProjectView.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Idea, Project, Domain, Task } from "../lib/mockData";
+import { dataService } from "../services/dataService";
 
-// --- Sub-Components ---
+// --- Reusable Editable Text Component ---
+// A self-contained component for handling the logic of inline editing.
+interface EditableTextProps {
+    text: string;
+    onSave: (newText: string) => void;
+    className: string;
+    as?: "input" | "textarea";
+}
+
+const EditableText: React.FC<EditableTextProps> = ({
+    text,
+    onSave,
+    className,
+    as = "input",
+}) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(text);
+
+    const handleSave = () => {
+        // Only save if the text has actually changed
+        if (editText.trim() && editText.trim() !== text) {
+            onSave(editText.trim());
+        }
+        setIsEditing(false);
+    };
+
+    if (isEditing) {
+        const commonProps = {
+            value: editText,
+            onChange: (
+                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+            ) => setEditText(e.target.value),
+            onBlur: handleSave,
+            onKeyDown: (e: React.KeyboardEvent) => {
+                if (e.key === "Enter" && as !== "textarea") handleSave(); // Save on Enter for single-line inputs
+                if (e.key === "Escape") setIsEditing(false); // Cancel on Escape
+            },
+            autoFocus: true,
+            className: `${className} bg-gray-600 rounded p-1 outline-none ring-2 ring-cyan-500`,
+        };
+        return as === "textarea" ? (
+            <textarea {...commonProps} rows={3} />
+        ) : (
+            <input {...commonProps} type="text" />
+        );
+    }
+
+    // The onClick handler makes the text clickable to enter edit mode.
+    return (
+        <div
+            onClick={() => setIsEditing(true)}
+            className={`${className} cursor-pointer`}
+        >
+            {text}
+        </div>
+    );
+};
+
+// --- Sub-Components for Project View ---
 
 const EmptyIdeasState = () => (
     <div className="text-center py-10 border-2 border-dashed border-gray-700 rounded-lg">
@@ -16,59 +75,89 @@ const EmptyIdeasState = () => (
     </div>
 );
 
-interface TaskItemProps {
-    task: Task;
-    onToggle: () => void;
-}
-
-const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle }) => (
-    <li className="flex items-center space-x-2 text-sm text-gray-400">
-        <input
-            type="checkbox"
-            checked={task.is_completed}
-            onChange={onToggle} // CHANGED: Now interactive
-            className="form-checkbox h-4 w-4 rounded bg-gray-700 border-gray-600 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
-        />
-        <span className={task.is_completed ? "line-through" : ""}>
-            {task.name}
-        </span>
-    </li>
-);
-
 interface IdeaCardProps {
     idea: Idea;
-    onAddTask: (ideaId: number, taskName: string) => void;
-    onToggleTask: (ideaId: number, taskId: number) => void;
+    onUpdateIdea: (updatedIdea: Idea) => void;
+    onDeleteIdea: (ideaId: number) => void;
 }
 
 const IdeaCard: React.FC<IdeaCardProps> = ({
     idea,
-    onAddTask,
-    onToggleTask,
+    onUpdateIdea,
+    onDeleteIdea,
 }) => {
-    const [newTaskName, setNewTaskName] = React.useState("");
+    const [newTaskName, setNewTaskName] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newTaskName.trim()) {
-            onAddTask(idea.id, newTaskName.trim());
-            setNewTaskName("");
-        }
+        if (!newTaskName.trim()) return;
+        const newTask: Task = {
+            id: Date.now(),
+            name: newTaskName.trim(),
+            is_completed: false,
+        };
+        onUpdateIdea({ ...idea, tasks: [...idea.tasks, newTask] });
+        setNewTaskName("");
+    };
+
+    const handleToggleTask = (taskId: number) => {
+        const updatedTasks = idea.tasks.map((t) =>
+            t.id === taskId ? { ...t, is_completed: !t.is_completed } : t
+        );
+        onUpdateIdea({ ...idea, tasks: updatedTasks });
+    };
+
+    const handleDeleteTask = (taskId: number) => {
+        const updatedTasks = idea.tasks.filter((t) => t.id !== taskId);
+        onUpdateIdea({ ...idea, tasks: updatedTasks });
+    };
+
+    const handleUpdateIdeaName = (newName: string) => {
+        onUpdateIdea({ ...idea, name: newName });
     };
 
     return (
-        <div className="bg-stone-800 p-4 rounded-lg flex flex-col">
-            <h4 className="font-bold text-gray-200">{idea.name}</h4>
+        <div className="bg-stone-800 p-4 rounded-lg flex flex-col group">
+            <div className="flex justify-between items-center mb-2">
+                <EditableText
+                    text={idea.name}
+                    onSave={handleUpdateIdeaName}
+                    className="font-bold text-gray-200 w-full"
+                />
+                <button
+                    onClick={() => onDeleteIdea(idea.id)}
+                    className="text-red-500 opacity-0 group-hover:opacity-100 transition text-xs ml-2 flex-shrink-0"
+                >
+                    DELETE
+                </button>
+            </div>
             <ul className="mt-2 space-y-1 flex-grow">
                 {idea.tasks.map((task) => (
-                    <TaskItem
+                    <li
                         key={task.id}
-                        task={task}
-                        onToggle={() => onToggleTask(idea.id, task.id)}
-                    />
+                        className="flex items-center space-x-2 text-sm text-gray-400 group/task"
+                    >
+                        <input
+                            type="checkbox"
+                            checked={task.is_completed}
+                            onChange={() => handleToggleTask(task.id)}
+                            className="form-checkbox h-4 w-4 rounded bg-gray-700 border-gray-600 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                        />
+                        <span
+                            className={task.is_completed ? "line-through" : ""}
+                        >
+                            {task.name}
+                        </span>
+                        <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="text-red-500 opacity-0 group-hover/task:opacity-100 transition text-xs ml-auto"
+                        >
+                            X
+                        </button>
+                    </li>
                 ))}
             </ul>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleAddTask} className="mt-4">
                 <input
                     type="text"
                     placeholder="+ Add a task"
@@ -81,7 +170,7 @@ const IdeaCard: React.FC<IdeaCardProps> = ({
     );
 };
 
-// --- Main Component ---
+// --- Main Project View Component ---
 
 interface ProjectViewProps {
     project: Project;
@@ -96,12 +185,7 @@ const ProjectView: React.FC<ProjectViewProps> = ({
     onUpdateProject,
     onDeleteProject,
 }) => {
-    const [newIdeaName, setNewIdeaName] = React.useState("");
-
-    const handleDomainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newDomain = e.target.value as Domain;
-        onUpdateProject({ ...project, domain: newDomain });
-    };
+    const [newIdeaName, setNewIdeaName] = useState("");
 
     const handleDeleteProject = () => {
         if (
@@ -125,34 +209,26 @@ const ProjectView: React.FC<ProjectViewProps> = ({
         setNewIdeaName("");
     };
 
-    // FILLED IN: Logic for adding a task to a specific idea
-    const handleAddTask = (ideaId: number, taskName: string) => {
-        const newTask: Task = {
-            id: Date.now(),
-            name: taskName,
-            is_completed: false,
-        };
-        const updatedIdeas = project.ideas.map((idea) =>
-            idea.id === ideaId
-                ? { ...idea, tasks: [...idea.tasks, newTask] }
-                : idea
+    const handleUpdateIdea = (updatedIdea: Idea) => {
+        const updatedIdeas = project.ideas.map((i) =>
+            i.id === updatedIdea.id ? updatedIdea : i
         );
         onUpdateProject({ ...project, ideas: updatedIdeas });
     };
 
-    // FILLED IN: Logic for toggling a task's completion status
-    const handleToggleTask = (ideaId: number, taskId: number) => {
-        const updatedIdeas = project.ideas.map((idea) => {
-            if (idea.id !== ideaId) return idea;
-            const updatedTasks = idea.tasks.map((task) =>
-                task.id === taskId
-                    ? { ...task, is_completed: !task.is_completed }
-                    : task
-            );
-            return { ...idea, tasks: updatedTasks };
-        });
-        onUpdateProject({ ...project, ideas: updatedIdeas });
+    const handleDeleteIdea = (ideaId: number) => {
+        if (window.confirm("Are you sure you want to delete this idea?")) {
+            const updatedIdeas = project.ideas.filter((i) => i.id !== ideaId);
+            onUpdateProject({ ...project, ideas: updatedIdeas });
+        }
     };
+
+    const [domains, setDomains] = useState<Domain[]>([]);
+    useEffect(() => {
+        dataService.getDomains().then((domains: Domain[]) => {
+            setDomains(domains);
+        });
+    }, []);
 
     return createPortal(
         <div
@@ -172,19 +248,38 @@ const ProjectView: React.FC<ProjectViewProps> = ({
                         &larr; Back to Universe
                     </button>
                     <div className="flex justify-between items-start mb-2">
-                        <h2 className="text-3xl font-bold">{project.name}</h2>
+                        <EditableText
+                            text={project.name}
+                            onSave={(name) =>
+                                onUpdateProject({ ...project, name })
+                            }
+                            className="text-3xl font-bold w-full"
+                        />
                         <select
                             value={project.domain}
-                            onChange={handleDomainChange}
-                            className="bg-gray-700 text-cyan-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg focus:ring-1 focus:ring-cyan-500 outline-none"
+                            onChange={(e) =>
+                                onUpdateProject({
+                                    ...project,
+                                    domain: e.target.value as Domain,
+                                })
+                            }
+                            className="bg-gray-700 text-cyan-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg focus:ring-1 focus:ring-cyan-500 outline-none ml-4 flex-shrink-0"
                         >
-                            <option>Art</option>
-                            <option>Code</option>
-                            <option>Music</option>
-                            <option>Content Creation</option>
+                            {domains.map((domain) => (
+                                <option key={domain} value={domain}>
+                                    {domain}
+                                </option>
+                            ))}
                         </select>
                     </div>
-                    <p className="text-gray-400 mb-6">{project.description}</p>
+                    <EditableText
+                        text={project.description}
+                        onSave={(description) =>
+                            onUpdateProject({ ...project, description })
+                        }
+                        as="textarea"
+                        className="text-gray-400 mb-6 w-full min-h-[4rem] bg-gray-700/50 rounded-lg p-2"
+                    />
                 </div>
 
                 <div className="flex-grow overflow-y-auto">
@@ -199,8 +294,8 @@ const ProjectView: React.FC<ProjectViewProps> = ({
                                 <IdeaCard
                                     key={idea.id}
                                     idea={idea}
-                                    onAddTask={handleAddTask}
-                                    onToggleTask={handleToggleTask}
+                                    onUpdateIdea={handleUpdateIdea}
+                                    onDeleteIdea={handleDeleteIdea}
                                 />
                             ))}
                         </div>

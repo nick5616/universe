@@ -1,20 +1,35 @@
 // src/components/AddProjectModal.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Domain } from "../lib/mockData";
+import { dataService } from "../services/dataService";
 
 interface AddProjectModalProps {
     onClose: () => void;
     onSave: (name: string, domain: Domain, description: string) => void;
+    refreshKey?: number; // Key to trigger refresh when domains change
 }
 
 const AddProjectModal: React.FC<AddProjectModalProps> = ({
     onClose,
     onSave,
+    refreshKey,
 }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [domain, setDomain] = useState<Domain>("Code");
+    const [domain, setDomain] = useState<Domain>("");
+    const [domains, setDomains] = useState<Domain[]>([]);
+
+    useEffect(() => {
+        const loadDomains = async () => {
+            const fetchedDomains = await dataService.getDomains();
+            setDomains(fetchedDomains);
+            if (fetchedDomains.length > 0 && !domain) {
+                setDomain(fetchedDomains[0]);
+            }
+        };
+        loadDomains();
+    }, [refreshKey]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,11 +98,13 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
                                 setDomain(e.target.value as Domain)
                             }
                             className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"
+                            required
                         >
-                            <option>Art</option>
-                            <option>Code</option>
-                            <option>Music</option>
-                            <option>Content Creation</option>
+                            {domains.map((d) => (
+                                <option key={d} value={d}>
+                                    {d}
+                                </option>
+                            ))}
                         </select>
                     </div>
                     <div className="flex justify-end space-x-2">

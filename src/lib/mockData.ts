@@ -10,7 +10,7 @@ export interface Idea {
     tasks: Task[];
 }
 
-export type Domain = "Art" | "Code" | "Music" | "Content Creation";
+export type Domain = string; // Changed to string to allow dynamic domains
 
 export interface Project {
     id: number;

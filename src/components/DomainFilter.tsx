@@ -1,41 +1,42 @@
 // src/components/DomainFilter.tsx
-import React from "react";
-import { Project } from "../lib/mockData";
+import React, { useState, useEffect } from "react";
+import { Project, Domain } from "../lib/mockData";
+import { dataService } from "../services/dataService";
 
-type Domain = "All" | Project["domain"];
+type DomainFilterType = "All" | Project["domain"];
 
 interface DomainFilterProps {
-    activeDomain: Domain;
-    onSelectDomain: (domain: Domain) => void;
-    onAddProjectClick: () => void; // Changed from onAddProject
+    activeDomain: DomainFilterType;
+    onSelectDomain: (domain: DomainFilterType) => void;
+    onAddProjectClick: () => void;
+    onAddDomainClick: () => void;
+    refreshKey?: number; // Key to trigger refresh when domains change
 }
 
 const DomainFilter: React.FC<DomainFilterProps> = ({
     activeDomain,
     onSelectDomain,
     onAddProjectClick,
+    onAddDomainClick,
+    refreshKey,
 }) => {
-    const domains: Domain[] = [
-        "All",
-        "Art",
-        "Code",
-        "Music",
-        "Content Creation",
-    ];
+    const [domains, setDomains] = useState<Domain[]>([]);
+
+    useEffect(() => {
+        const loadDomains = async () => {
+            const fetchedDomains = await dataService.getDomains();
+            setDomains(fetchedDomains);
+        };
+        loadDomains();
+    }, [refreshKey]);
+
+    const allDomains: DomainFilterType[] = ["All", ...domains];
 
     return (
         <div>
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">Your Projects</h2>
-                <button
-                    onClick={onAddProjectClick}
-                    className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
-                >
-                    + Add Project
-                </button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2 border-b border-gray-700 pb-4">
-                {domains.map((domain) => (
+            <div className="flex justify-between items-center"></div>
+            <div className="flex flex-wrap gap-2 mt-2 pb-4">
+                {allDomains.map((domain) => (
                     <button
                         key={domain}
                         onClick={() => onSelectDomain(domain)}
@@ -48,6 +49,12 @@ const DomainFilter: React.FC<DomainFilterProps> = ({
                         {domain}
                     </button>
                 ))}
+                <button
+                    onClick={onAddDomainClick}
+                    className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
+                >
+                    + New domain
+                </button>
             </div>
         </div>
     );
