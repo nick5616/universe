@@ -235,9 +235,9 @@ const ProjectView: React.FC<ProjectViewProps> = ({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={onBack}
         >
-            <div className="absolute inset-0 bg-black opacity-70" />
+            <div className="absolute inset-0 bg-black/70 animate-fade-in" />
             <div
-                className="relative bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fade-in flex flex-col"
+                className="relative bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-zoom-in flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex-shrink-0">

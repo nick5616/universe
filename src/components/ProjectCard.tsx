@@ -2,21 +2,17 @@
 import React from "react";
 import { Project } from "../lib/mockData";
 
-// Utility function to calculate "time ago"
-const timeAgo = (dateString: string): string => {
+// This function now calculates a "vitality" score in days
+const getVitality = (
+    dateString: string
+): { daysAgo: number; label: string } => {
     const date = new Date(dateString);
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    let interval = seconds / 31536000;
-    if (interval > 1) return Math.floor(interval) + " years ago";
-    interval = seconds / 2592000;
-    if (interval > 1) return Math.floor(interval) + " months ago";
-    interval = seconds / 86400;
-    if (interval > 1) return Math.floor(interval) + " days ago";
-    interval = seconds / 3600;
-    if (interval > 1) return Math.floor(interval) + " hours ago";
-    interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + " minutes ago";
-    return "just now";
+    const days = Math.floor(seconds / 86400);
+
+    if (days < 1) return { daysAgo: 0, label: "touched today" };
+    if (days === 1) return { daysAgo: 1, label: "touched yesterday" };
+    return { daysAgo: days, label: `touched ${days} days ago` };
 };
 
 interface ProjectCardProps {
@@ -30,6 +26,22 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     onClick,
     onDelete,
 }) => {
+    const vitality = getVitality(project.last_touched_at);
+
+    // --- THEMATIC STYLING ---
+    // Determine the card's visual state based on its vitality
+    let vitalityStyles = "transition-all duration-500";
+    if (vitality.daysAgo <= 3) {
+        // Recently active: Bright and glowing
+        vitalityStyles += " opacity-100 shadow-lg shadow-cyan-500/20";
+    } else if (vitality.daysAgo <= 14) {
+        // A little dormant: Still bright but less glow
+        vitalityStyles += " opacity-90";
+    } else {
+        // Dormant: Faded, like a distant star
+        vitalityStyles += " opacity-60 hover:opacity-100";
+    }
+
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (
@@ -41,7 +53,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
     return (
         <div
-            className="group bg-gray-800 rounded-lg p-6 shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.03] transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            className={`group bg-gray-800 rounded-lg p-6 hover:scale-[1.03] cursor-pointer flex flex-col justify-between ${vitalityStyles}`}
             onClick={onClick}
         >
             <div>
@@ -59,12 +71,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 </p>
             </div>
             <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
-                <span>Touched: {timeAgo(project.last_touched_at)}</span>
+                <span>{vitality.label}</span>
                 <button
                     onClick={handleDeleteClick}
-                    className="text-red-500 hover:text-red-400 font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-gray-500 hover:text-red-500 font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                    DELETE
+                    REMOVE
                 </button>
             </div>
         </div>
