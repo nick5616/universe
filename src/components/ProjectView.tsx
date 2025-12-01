@@ -160,7 +160,7 @@ const IdeaCard: React.FC<IdeaCardProps> = ({
             <form onSubmit={handleAddTask} className="mt-4">
                 <input
                     type="text"
-                    placeholder="+ Add a task"
+                    placeholder="+ Add a step"
                     value={newTaskName}
                     onChange={(e) => setNewTaskName(e.target.value)}
                     className="bg-gray-700/50 w-full text-xs p-2 rounded placeholder-gray-500 focus:bg-gray-700 focus:ring-1 focus:ring-cyan-500 outline-none transition"
@@ -188,9 +188,10 @@ const ProjectView: React.FC<ProjectViewProps> = ({
     const [newIdeaName, setNewIdeaName] = useState("");
 
     const handleDeleteProject = () => {
+        // THEMATIC LANGUAGE
         if (
             window.confirm(
-                `Are you sure you want to permanently delete the "${project.name}" project? This cannot be undone.`
+                `Let this project go? It will be permanently removed from your universe.`
             )
         ) {
             onDeleteProject(project.id);
@@ -217,7 +218,8 @@ const ProjectView: React.FC<ProjectViewProps> = ({
     };
 
     const handleDeleteIdea = (ideaId: number) => {
-        if (window.confirm("Are you sure you want to delete this idea?")) {
+        // THEMATIC LANGUAGE
+        if (window.confirm("Let this idea go?")) {
             const updatedIdeas = project.ideas.filter((i) => i.id !== ideaId);
             onUpdateProject({ ...project, ideas: updatedIdeas });
         }
@@ -317,9 +319,9 @@ const ProjectView: React.FC<ProjectViewProps> = ({
                 <div className="mt-6 pt-4 border-t border-gray-700 flex-shrink-0">
                     <button
                         onClick={handleDeleteProject}
-                        className="text-red-500 hover:text-red-400 text-sm font-semibold"
+                        className="text-gray-400 hover:text-red-500 text-sm font-semibold"
                     >
-                        Delete this Project
+                        Remove from Universe
                     </button>
                 </div>
             </div>

@@ -145,7 +145,15 @@ const Dashboard = () => {
                     />
                     <SortDropdown sortBy={sortBy} onSortChange={setSortBy} />
                 </div>
-                <h2 className="text-2xl font-semibold">Your Projects</h2>
+                <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-semibold">Your Projects</h2>
+                    <button
+                        onClick={() => setAddModalOpen(true)}
+                        className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
+                    >
+                        + Add Project
+                    </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 animate-fade-in">
                     {filteredProjects.map((project) => (
                         <ProjectCard

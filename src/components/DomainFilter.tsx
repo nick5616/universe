@@ -33,14 +33,14 @@ const DomainFilter: React.FC<DomainFilterProps> = ({
     const allDomains: DomainFilterType[] = ["All", ...domains];
 
     return (
-        <div>
+        <div className="w-full max-w-[56vw]">
             <div className="flex justify-between items-center"></div>
-            <div className="flex flex-wrap gap-2 mt-2 pb-4">
+            <div className="flex gap-2 mt-2 pb-4 overflow-x-auto scrollbar-hide mr-4">
                 {allDomains.map((domain) => (
                     <button
                         key={domain}
                         onClick={() => onSelectDomain(domain)}
-                        className={`px-4 py-1 rounded-full text-sm transition ${
+                        className={`px-4 py-1 rounded-full text-sm transition whitespace-nowrap flex-shrink-0 ${
                             activeDomain === domain
                                 ? "bg-cyan-500 text-white font-bold"
                                 : "bg-gray-700 hover:bg-gray-600"
@@ -51,7 +51,7 @@ const DomainFilter: React.FC<DomainFilterProps> = ({
                 ))}
                 <button
                     onClick={onAddDomainClick}
-                    className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
+                    className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition whitespace-nowrap flex-shrink-0"
                 >
                     + New domain
                 </button>
