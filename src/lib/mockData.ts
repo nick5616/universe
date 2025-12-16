@@ -10,14 +10,14 @@ export interface Idea {
     tasks: Task[];
 }
 
-export type Domain = string; // Changed to string to allow dynamic domains
+export type Domain = "Art" | "Code" | "Music" | "Content Creation";
 
 export interface Project {
     id: number;
     name: string;
     description: string;
     domain: Domain;
-    status: "Active" | "On Hold";
+    status: "Growing" | "Dormant";
     ideas: Idea[];
     last_touched_at: string;
 }
@@ -27,10 +27,10 @@ export const initialProjects: Project[] = [
         id: 1,
         name: "Amazfit Watchfaces",
         domain: "Code",
-        status: "Active",
+        status: "Growing",
         description:
             "Creating and selling custom watchfaces on the Amazfit store.",
-        last_touched_at: "2023-10-15T10:00:00Z",
+        last_touched_at: new Date().toISOString(),
         ideas: [
             {
                 id: 101,
@@ -59,10 +59,10 @@ export const initialProjects: Project[] = [
         id: 2,
         name: "Social Media Content",
         domain: "Art",
-        status: "Active",
+        status: "Growing",
         description:
             "An experimental TikTok account dedicated to drawing with my non-dominant hand.",
-        last_touched_at: "2023-11-01T12:30:00Z",
+        last_touched_at: new Date(Date.now() - 86400000 * 5).toISOString(),
         ideas: [
             {
                 id: 102,
@@ -75,10 +75,9 @@ export const initialProjects: Project[] = [
         id: 3,
         name: "Tierlistify App",
         domain: "Code",
-        status: "On Hold",
-        description:
-            "A web app for creating and sharing tier lists. Currently on hold until I have time for a proper launch plan.",
-        last_touched_at: "2023-09-05T18:00:00Z",
+        status: "Dormant",
+        description: "A web app for creating and sharing tier lists.",
+        last_touched_at: new Date(Date.now() - 86400000 * 30).toISOString(),
         ideas: [
             {
                 id: 103,
@@ -96,6 +95,18 @@ export const initialProjects: Project[] = [
                     },
                 ],
             },
+        ],
+    },
+    {
+        id: 4,
+        name: "Song Mashups",
+        domain: "Music",
+        status: "Growing",
+        description: "Creating unique mashups of songs that share a vibe.",
+        last_touched_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+        ideas: [
+            { id: 104, name: "Daft Punk vs. Knight Rider", tasks: [] },
+            { id: 105, name: "Maintain a running list of ideas", tasks: [] },
         ],
     },
 ];

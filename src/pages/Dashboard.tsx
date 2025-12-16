@@ -1,31 +1,24 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Project, Domain } from "../lib/mockData";
+import { dataService } from "../services/dataService";
 import ProjectCard from "../components/ProjectCard";
 import SmartWidgets from "../components/SmartWidgets";
 import DomainFilter from "../components/DomainFilter";
 import ProjectView from "../components/ProjectView";
 import AddProjectModal from "../components/AddProjectModal";
-import AddDomainModal from "../components/AddDomainModal";
-import { Domain, Project } from "../lib/mockData";
-import { dataService } from "../services/dataService";
 import SortDropdown, { SortOption } from "../components/SortDropdown";
 
 const Dashboard = () => {
-    const [projects, setProjects] = React.useState<Project[]>([]);
-    const [activeDomain, setActiveDomain] = useState<"All" | Project["domain"]>(
-        "All"
-    );
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [activeDomain, setActiveDomain] = useState<"All" | Domain>("All");
     const [selectedProject, setSelectedProject] = useState<Project | null>(
         null
     );
     const [isAddModalOpen, setAddModalOpen] = useState(false);
-    const [isAddDomainModalOpen, setAddDomainModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [sortBy, setSortBy] = useState<SortOption>("last_touched_at"); // NEW: State for sorting
-    const [domainRefreshKey, setDomainRefreshKey] = useState(0); // Key to refresh DomainFilter
+    const [sortBy, setSortBy] = useState<SortOption>("last_touched_at");
 
-    // --- DATA FETCHING AND STATE MANAGEMENT ---
     useEffect(() => {
-        // Load initial data from our service
         const loadProjects = async () => {
             setIsLoading(true);
             const fetchedProjects = await dataService.getProjects();
@@ -50,22 +43,9 @@ const Dashboard = () => {
         setAddModalOpen(false);
     };
 
-    const handleAddDomain = async (domain: Domain) => {
-        try {
-            await dataService.addDomain(domain);
-            setAddDomainModalOpen(false);
-            // Refresh domains by incrementing the refresh key
-            setDomainRefreshKey((prev) => prev + 1);
-        } catch (error) {
-            console.error("Failed to add domain:", error);
-            // You could add error handling UI here if needed
-        }
-    };
-
     const handleDeleteProject = async (projectId: number) => {
-        // This now works for both the card and the modal view
         if (selectedProject?.id === projectId) {
-            setSelectedProject(null); // Close modal if the deleted project was open
+            setSelectedProject(null);
         }
         await dataService.deleteProject(projectId);
         await refreshProjects();
@@ -74,21 +54,42 @@ const Dashboard = () => {
     const handleUpdateProject = async (updatedProject: Project) => {
         const returnedProject = await dataService.updateProject(updatedProject);
         await refreshProjects();
-        // This fixes the bug: we update the selectedProject state with the *newest* version.
         setSelectedProject(returnedProject);
     };
 
     const handleSpontaneousClick = () => {
-        // ... (This logic remains the same)
+        const allTasks = projects.flatMap((p) =>
+            p.ideas.flatMap((i) =>
+                i.tasks.map((t) => ({
+                    ...t,
+                    ideaName: i.name,
+                    projectName: p.name,
+                }))
+            )
+        );
+        const incompleteTasks = allTasks.filter((t) => !t.is_completed);
+
+        if (incompleteTasks.length === 0) {
+            alert(
+                "🎉 You've completed everything! Time to plant some new seeds."
+            );
+            return;
+        }
+
+        const randomTask =
+            incompleteTasks[Math.floor(Math.random() * incompleteTasks.length)];
+        alert(
+            `🌱 Your spontaneous task is:\n\nProject: ${randomTask.projectName}\nIdea: ${randomTask.ideaName}\nStep: ${randomTask.name}`
+        );
     };
 
-    const filteredProjects = useMemo(() => {
+    const filteredAndSortedProjects = useMemo(() => {
         const list =
             activeDomain === "All"
                 ? projects
                 : projects.filter((p) => p.domain === activeDomain);
 
-        return list.sort((a, b) => {
+        return [...list].sort((a, b) => {
             switch (sortBy) {
                 case "name":
                     return a.name.localeCompare(b.name);
@@ -105,7 +106,13 @@ const Dashboard = () => {
     }, [projects, activeDomain, sortBy]);
 
     if (isLoading) {
-        return <div className="text-center p-10">Loading your universe...</div>;
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="text-xl text-stone-400 animate-pulse">
+                    Loading your garden...
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -114,13 +121,6 @@ const Dashboard = () => {
                 <AddProjectModal
                     onClose={() => setAddModalOpen(false)}
                     onSave={handleAddProject}
-                    refreshKey={domainRefreshKey}
-                />
-            )}
-            {isAddDomainModalOpen && (
-                <AddDomainModal
-                    onClose={() => setAddDomainModalOpen(false)}
-                    onSave={handleAddDomain}
                 />
             )}
 
@@ -129,41 +129,48 @@ const Dashboard = () => {
                     project={selectedProject}
                     onBack={() => setSelectedProject(null)}
                     onUpdateProject={handleUpdateProject}
-                    onDeleteProject={handleDeleteProject} // Pass the handler here
+                    onDeleteProject={handleDeleteProject}
                 />
             )}
 
             <SmartWidgets onSpontaneousClick={handleSpontaneousClick} />
+
             <div className="mt-8">
-                <div className="flex justify-between items-center border-b border-gray-700 mb-4">
+                <h2 className="text-2xl font-bold font-serif text-stone-100 mb-4">
+                    Your Garden
+                </h2>
+
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 pb-6 border-b border-earth-700">
                     <DomainFilter
                         activeDomain={activeDomain}
                         onSelectDomain={setActiveDomain}
                         onAddProjectClick={() => setAddModalOpen(true)}
-                        onAddDomainClick={() => setAddDomainModalOpen(true)}
-                        refreshKey={domainRefreshKey}
                     />
                     <SortDropdown sortBy={sortBy} onSortChange={setSortBy} />
                 </div>
-                <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">Your Projects</h2>
-                    <button
-                        onClick={() => setAddModalOpen(true)}
-                        className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
-                    >
-                        + Add Project
-                    </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 animate-fade-in">
-                    {filteredProjects.map((project) => (
-                        <ProjectCard
-                            key={project.id}
-                            project={project}
-                            onClick={() => setSelectedProject(project)}
-                            onDelete={handleDeleteProject}
-                        />
-                    ))}
-                </div>
+
+                {filteredAndSortedProjects.length === 0 ? (
+                    <div className="text-center py-16 border-2 border-dashed border-earth-700 rounded-xl bg-earth-800/30">
+                        <div className="text-5xl mb-4">🌻</div>
+                        <h3 className="text-xl font-semibold font-serif text-stone-300">
+                            Your garden is empty!
+                        </h3>
+                        <p className="text-stone-500 mt-2">
+                            Plant your first seed to get started.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                        {filteredAndSortedProjects.map((project) => (
+                            <ProjectCard
+                                key={project.id}
+                                project={project}
+                                onClick={() => setSelectedProject(project)}
+                                onDelete={handleDeleteProject}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import { dataService } from "../services/dataService";
 
+import { localStorageKey } from "../constants";
+
 const Footer = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +54,7 @@ const Footer = () => {
 
             // Import projects
             localStorage.setItem(
-                "universe-projects",
+                localStorageKey,
                 JSON.stringify(importData.projects)
             );
 

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    body {
+        @apply bg-gradient-to-br from-earth-900 to-stone-900 text-stone-200 font-sans min-h-screen;
+    }
+}
+
 @layer utilities {
     .animate-fade-in {
         animation: fadeIn 0.3s ease-in-out;
@@ -18,7 +24,7 @@
     }
 
     .animate-zoom-in {
-        animation: zoomIn 0.3s ease-in-out;
+        animation: zoomIn 0.3s ease-out;
     }
     @keyframes zoomIn {
         from {
@@ -31,11 +37,13 @@
         }
     }
 
-    .scrollbar-hide {
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
+    .glow-growth {
+        box-shadow: 0 0 20px theme("colors.growth.500 / 30%"),
+            0 0 40px theme("colors.growth.500 / 10%");
     }
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none; /* Chrome, Safari and Opera */
+
+    .glow-passion {
+        box-shadow: 0 0 20px theme("colors.passion.500 / 30%"),
+            0 0 40px theme("colors.passion.500 / 10%");
     }
 }

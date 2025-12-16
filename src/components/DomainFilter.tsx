@@ -1,61 +1,50 @@
-// src/components/DomainFilter.tsx
-import React, { useState, useEffect } from "react";
-import { Project, Domain } from "../lib/mockData";
-import { dataService } from "../services/dataService";
+import React from "react";
+import { Project } from "../lib/mockData";
 
-type DomainFilterType = "All" | Project["domain"];
+type Domain = "All" | Project["domain"];
 
 interface DomainFilterProps {
-    activeDomain: DomainFilterType;
-    onSelectDomain: (domain: DomainFilterType) => void;
+    activeDomain: Domain;
+    onSelectDomain: (domain: Domain) => void;
     onAddProjectClick: () => void;
-    onAddDomainClick: () => void;
-    refreshKey?: number; // Key to trigger refresh when domains change
 }
 
 const DomainFilter: React.FC<DomainFilterProps> = ({
     activeDomain,
     onSelectDomain,
     onAddProjectClick,
-    onAddDomainClick,
-    refreshKey,
 }) => {
-    const [domains, setDomains] = useState<Domain[]>([]);
-
-    useEffect(() => {
-        const loadDomains = async () => {
-            const fetchedDomains = await dataService.getDomains();
-            setDomains(fetchedDomains);
-        };
-        loadDomains();
-    }, [refreshKey]);
-
-    const allDomains: DomainFilterType[] = ["All", ...domains];
+    const domains: Domain[] = [
+        "All",
+        "Art",
+        "Code",
+        "Music",
+        "Content Creation",
+    ];
 
     return (
-        <div className="w-full max-w-[56vw]">
-            <div className="flex justify-between items-center"></div>
-            <div className="flex gap-2 mt-2 pb-4 overflow-x-auto scrollbar-hide mr-4">
-                {allDomains.map((domain) => (
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-wrap gap-2">
+                {domains.map((domain) => (
                     <button
                         key={domain}
                         onClick={() => onSelectDomain(domain)}
-                        className={`px-4 py-1 rounded-full text-sm transition whitespace-nowrap flex-shrink-0 ${
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
                             activeDomain === domain
-                                ? "bg-cyan-500 text-white font-bold"
-                                : "bg-gray-700 hover:bg-gray-600"
+                                ? "bg-passion-500 text-white shadow-lg glow-passion"
+                                : "bg-earth-800 text-stone-300 hover:bg-earth-700 hover:text-stone-100"
                         }`}
                     >
                         {domain}
                     </button>
                 ))}
-                <button
-                    onClick={onAddDomainClick}
-                    className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition whitespace-nowrap flex-shrink-0"
-                >
-                    + New domain
-                </button>
             </div>
+            <button
+                onClick={onAddProjectClick}
+                className="px-5 py-2 bg-gradient-to-r from-growth-500 to-growth-600 rounded-lg text-sm font-bold text-white hover:from-growth-400 hover:to-growth-500 transition-all duration-300 shadow-lg hover:shadow-growth-500/25"
+            >
+                + Plant a Seed
+            </button>
         </div>
     );
 };

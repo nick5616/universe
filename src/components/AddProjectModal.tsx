@@ -1,35 +1,19 @@
-// src/components/AddProjectModal.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Domain } from "../lib/mockData";
-import { dataService } from "../services/dataService";
 
 interface AddProjectModalProps {
     onClose: () => void;
     onSave: (name: string, domain: Domain, description: string) => void;
-    refreshKey?: number; // Key to trigger refresh when domains change
 }
 
 const AddProjectModal: React.FC<AddProjectModalProps> = ({
     onClose,
     onSave,
-    refreshKey,
 }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [domain, setDomain] = useState<Domain>("");
-    const [domains, setDomains] = useState<Domain[]>([]);
-
-    useEffect(() => {
-        const loadDomains = async () => {
-            const fetchedDomains = await dataService.getDomains();
-            setDomains(fetchedDomains);
-            if (fetchedDomains.length > 0 && !domain) {
-                setDomain(fetchedDomains[0]);
-            }
-        };
-        loadDomains();
-    }, [refreshKey]);
+    const [domain, setDomain] = useState<Domain>("Code");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,24 +23,26 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
     };
 
     return createPortal(
-        // ... (modal backdrop and wrapper div remain the same)
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <div className="absolute inset-0 bg-black opacity-70" />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in" />
             <div
-                className="relative bg-gray-800 rounded-lg p-6 w-full max-w-md animate-fade-in"
+                className="relative bg-earth-800 rounded-2xl p-8 w-full max-w-md border border-earth-700 animate-zoom-in"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h2 className="text-2xl font-bold mb-4">
-                    Chart a New Constellation
+                <h2 className="text-3xl font-bold font-serif text-stone-100 mb-2">
+                    Plant a New Seed
                 </h2>
+                <p className="text-stone-400 mb-6">
+                    What's the next idea you want to nurture?
+                </p>
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
+                    <div className="mb-5">
                         <label
                             htmlFor="projectName"
-                            className="block mb-2 text-sm font-medium text-gray-300"
+                            className="block mb-2 text-sm font-medium text-stone-300"
                         >
                             Project Name
                         </label>
@@ -65,29 +51,32 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
                             id="projectName"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"
+                            className="bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent block w-full p-3 outline-none transition-all"
+                            placeholder="e.g., My Awesome App"
                             required
                         />
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-5">
                         <label
                             htmlFor="projectDesc"
-                            className="block mb-2 text-sm font-medium text-gray-300"
+                            className="block mb-2 text-sm font-medium text-stone-300"
                         >
-                            Description (Optional)
+                            Description{" "}
+                            <span className="text-stone-500">(Optional)</span>
                         </label>
                         <textarea
                             id="projectDesc"
                             rows={3}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"
-                        ></textarea>
+                            className="bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent block w-full p-3 outline-none transition-all resize-none"
+                            placeholder="What is this project about?"
+                        />
                     </div>
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <label
                             htmlFor="projectDomain"
-                            className="block mb-2 text-sm font-medium text-gray-300"
+                            className="block mb-2 text-sm font-medium text-stone-300"
                         >
                             Domain
                         </label>
@@ -97,29 +86,27 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
                             onChange={(e) =>
                                 setDomain(e.target.value as Domain)
                             }
-                            className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"
-                            required
+                            className="bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent block w-full p-3 outline-none transition-all"
                         >
-                            {domains.map((d) => (
-                                <option key={d} value={d}>
-                                    {d}
-                                </option>
-                            ))}
+                            <option>Art</option>
+                            <option>Code</option>
+                            <option>Music</option>
+                            <option>Content Creation</option>
                         </select>
                     </div>
-                    <div className="flex justify-end space-x-2">
+                    <div className="flex justify-end space-x-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 bg-gray-600 rounded-lg text-sm font-bold hover:bg-gray-500 transition"
+                            className="px-5 py-2.5 bg-earth-700 rounded-lg text-sm font-semibold text-stone-300 hover:bg-earth-600 transition-all"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
+                            className="px-5 py-2.5 bg-gradient-to-r from-growth-500 to-growth-600 rounded-lg text-sm font-bold text-white hover:from-growth-400 hover:to-growth-500 transition-all shadow-lg"
                         >
-                            Create Project
+                            Plant Seed
                         </button>
                     </div>
                 </form>
