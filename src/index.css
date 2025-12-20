@@ -46,4 +46,12 @@
         box-shadow: 0 0 20px theme("colors.passion.500 / 30%"),
             0 0 40px theme("colors.passion.500 / 10%");
     }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
 }

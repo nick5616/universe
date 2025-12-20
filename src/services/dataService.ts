@@ -19,7 +19,17 @@ const localStorageApi: ProjectApi = {
     async getProjects(): Promise<Project[]> {
         const projectsJson = localStorage.getItem(STORAGE_KEY);
         if (projectsJson) {
-            return JSON.parse(projectsJson);
+            const projects = JSON.parse(projectsJson);
+            // Migrate existing projects to include responsibilities field
+            const migratedProjects = projects.map((p: Project) => ({
+                ...p,
+                responsibilities: p.responsibilities || [],
+            }));
+            // Only update if migration was needed
+            if (migratedProjects.some((p: Project, i: number) => !projects[i].responsibilities)) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(migratedProjects));
+            }
+            return migratedProjects;
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(initialProjects));
         return initialProjects;
@@ -39,10 +49,11 @@ const localStorageApi: ProjectApi = {
         const newProject: Project = {
             id: Date.now(),
             name,
-            domain,
+            domain: domain as Domain, // Allow dynamic domains
             description,
             status: "Growing",
             ideas: [],
+            responsibilities: [],
             last_touched_at: new Date().toISOString(),
         };
         const newProjects = [...projects, newProject];

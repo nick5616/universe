@@ -1,24 +1,30 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Domain } from "../lib/mockData";
 
 interface AddProjectModalProps {
     onClose: () => void;
-    onSave: (name: string, domain: Domain, description: string) => void;
+    onSave: (name: string, domain: string, description: string) => void;
+    initialDomain?: string;
+    availableDomains?: string[];
 }
 
 const AddProjectModal: React.FC<AddProjectModalProps> = ({
     onClose,
     onSave,
+    initialDomain,
+    availableDomains = ["Art", "Code", "Music", "Content Creation"],
 }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [domain, setDomain] = useState<Domain>("Code");
+    const [domain, setDomain] = useState<string>(initialDomain || "Code");
+    const [isCustomDomain, setIsCustomDomain] = useState(
+        !availableDomains.includes(initialDomain || "")
+    );
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (name.trim()) {
-            onSave(name.trim(), domain, description.trim());
+        if (name.trim() && domain.trim()) {
+            onSave(name.trim(), domain.trim(), description.trim());
         }
     };
 
@@ -80,19 +86,60 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
                         >
                             Domain
                         </label>
-                        <select
-                            id="projectDomain"
-                            value={domain}
-                            onChange={(e) =>
-                                setDomain(e.target.value as Domain)
-                            }
-                            className="bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent block w-full p-3 outline-none transition-all"
-                        >
-                            <option>Art</option>
-                            <option>Code</option>
-                            <option>Music</option>
-                            <option>Content Creation</option>
-                        </select>
+                        <div className="flex gap-2">
+                            {!isCustomDomain ? (
+                                <select
+                                    id="projectDomain"
+                                    value={domain}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "__custom__") {
+                                            setIsCustomDomain(true);
+                                            setDomain("");
+                                        } else {
+                                            setDomain(value);
+                                        }
+                                    }}
+                                    className="flex-1 bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent p-3 outline-none transition-all"
+                                >
+                                    {availableDomains.map((d) => (
+                                        <option key={d} value={d}>
+                                            {d}
+                                        </option>
+                                    ))}
+                                    <option value="__custom__">
+                                        + Custom Domain
+                                    </option>
+                                </select>
+                            ) : (
+                                <>
+                                    <input
+                                        type="text"
+                                        id="projectDomain"
+                                        value={domain}
+                                        onChange={(e) =>
+                                            setDomain(e.target.value)
+                                        }
+                                        placeholder="Enter domain name"
+                                        className="flex-1 bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent p-3 outline-none transition-all"
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsCustomDomain(false);
+                                            if (availableDomains.length > 0) {
+                                                setDomain(availableDomains[0]);
+                                            }
+                                        }}
+                                        className="px-3 py-2 bg-earth-700 rounded-lg text-stone-300 hover:bg-earth-600 transition-all text-sm"
+                                        title="Use existing domain"
+                                    >
+                                        ←
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                     <div className="flex justify-end space-x-3">
                         <button

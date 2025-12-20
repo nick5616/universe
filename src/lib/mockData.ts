@@ -10,7 +10,16 @@ export interface Idea {
     tasks: Task[];
 }
 
-export type Domain = "Art" | "Code" | "Music" | "Content Creation";
+export interface Responsibility {
+    id: number;
+    name: string;
+    description?: string;
+    frequencyHours: number; // e.g., 24 for every 24 hours, 12 for every 12 hours
+    lastCompletedAt?: string; // ISO date string
+    nextDueAt?: string; // ISO date string (calculated from lastCompletedAt + frequencyHours)
+}
+
+export type Domain = "Art" | "Code" | "Music" | "Content Creation" | string; // Allow dynamic domains
 
 export interface Project {
     id: number;
@@ -19,6 +28,7 @@ export interface Project {
     domain: Domain;
     status: "Growing" | "Dormant";
     ideas: Idea[];
+    responsibilities: Responsibility[];
     last_touched_at: string;
 }
 
@@ -54,6 +64,7 @@ export const initialProjects: Project[] = [
                 ],
             },
         ],
+        responsibilities: [],
     },
     {
         id: 2,
@@ -70,6 +81,7 @@ export const initialProjects: Project[] = [
                 tasks: [],
             },
         ],
+        responsibilities: [],
     },
     {
         id: 3,
@@ -96,6 +108,7 @@ export const initialProjects: Project[] = [
                 ],
             },
         ],
+        responsibilities: [],
     },
     {
         id: 4,
@@ -108,5 +121,6 @@ export const initialProjects: Project[] = [
             { id: 104, name: "Daft Punk vs. Knight Rider", tasks: [] },
             { id: 105, name: "Maintain a running list of ideas", tasks: [] },
         ],
+        responsibilities: [],
     },
 ];

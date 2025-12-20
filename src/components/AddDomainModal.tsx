@@ -1,5 +1,5 @@
 // src/components/AddDomainModal.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 
 interface AddDomainModalProps {
@@ -14,6 +14,7 @@ const AddDomainModal: React.FC<AddDomainModalProps> = ({ onClose, onSave }) => {
         e.preventDefault();
         if (domain.trim()) {
             onSave(domain.trim());
+            onClose();
         }
     };
 
@@ -22,17 +23,22 @@ const AddDomainModal: React.FC<AddDomainModalProps> = ({ onClose, onSave }) => {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <div className="absolute inset-0 bg-black opacity-70" />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in" />
             <div
-                className="relative bg-gray-800 rounded-lg p-6 w-full max-w-md animate-fade-in"
+                className="relative bg-earth-800 rounded-2xl p-8 w-full max-w-md border border-earth-700 animate-zoom-in"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h2 className="text-2xl font-bold mb-4">Add New Domain</h2>
+                <h2 className="text-3xl font-bold font-serif text-stone-100 mb-2">
+                    Create Domain
+                </h2>
+                <p className="text-stone-400 mb-6">
+                    Add a new domain to organize your projects.
+                </p>
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-6">
+                    <div className="mb-8">
                         <label
                             htmlFor="domainName"
-                            className="block mb-2 text-sm font-medium text-gray-300"
+                            className="block mb-2 text-sm font-medium text-stone-300"
                         >
                             Domain Name
                         </label>
@@ -41,24 +47,25 @@ const AddDomainModal: React.FC<AddDomainModalProps> = ({ onClose, onSave }) => {
                             id="domainName"
                             value={domain}
                             onChange={(e) => setDomain(e.target.value)}
-                            className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2.5"
+                            className="bg-earth-900 border border-earth-700 text-stone-100 text-sm rounded-lg focus:ring-2 focus:ring-passion-500 focus:border-transparent block w-full p-3 outline-none transition-all"
                             placeholder="e.g., Writing, Design, Business"
                             required
+                            autoFocus
                         />
                     </div>
-                    <div className="flex justify-end space-x-2">
+                    <div className="flex justify-end space-x-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 bg-gray-600 rounded-lg text-sm font-bold hover:bg-gray-500 transition"
+                            className="px-5 py-2.5 bg-earth-700 rounded-lg text-sm font-semibold text-stone-300 hover:bg-earth-600 transition-all"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-cyan-600 rounded-lg text-sm font-bold hover:bg-cyan-500 transition"
+                            className="px-5 py-2.5 bg-gradient-to-r from-growth-500 to-growth-600 rounded-lg text-sm font-bold text-white hover:from-growth-400 hover:to-growth-500 transition-all shadow-lg"
                         >
-                            Add Domain
+                            Create Domain
                         </button>
                     </div>
                 </form>
