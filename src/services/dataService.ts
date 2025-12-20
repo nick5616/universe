@@ -26,7 +26,7 @@ const localStorageApi: ProjectApi = {
                 responsibilities: p.responsibilities || [],
             }));
             // Only update if migration was needed
-            if (migratedProjects.some((p: Project, i: number) => !projects[i].responsibilities)) {
+            if (migratedProjects.some((_p: Project, i: number) => !projects[i].responsibilities)) {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(migratedProjects));
             }
             return migratedProjects;

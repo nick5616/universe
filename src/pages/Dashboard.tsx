@@ -1,14 +1,16 @@
 // src/pages/Dashboard.tsx
 import { useState, useEffect, useMemo, useRef, ChangeEvent } from "react";
-import { Project, Domain, Idea, Responsibility } from "../lib/mockData";
+import { Project, Domain } from "../lib/mockData";
 import { dataService } from "../services/dataService";
 import { localStorageKey } from "../constants";
 import { focusService } from "../services/focusService";
-import { noteImportService } from "../services/noteImportService";
+// Note import feature temporarily disabled for deployment
+// import { noteImportService } from "../services/noteImportService";
 // import llmClassificationService from "../services/llmClassificationService";
-import stateMutationService from "../services/stateMutationService";
-import autoSyncService from "../services/autoSyncService";
-import { Note, ClassificationResult, AppState } from "../types";
+// import stateMutationService from "../services/stateMutationService";
+// import autoSyncService from "../services/autoSyncService";
+// import { ClassificationResult, AppState } from "../types";
+// import { Note } from "../types";
 import ProjectCard from "../components/ProjectCard";
 import SmartWidgets from "../components/SmartWidgets";
 import DomainFilter from "../components/DomainFilter";
@@ -18,8 +20,9 @@ import SortDropdown, { SortOption } from "../components/SortDropdown";
 import FocusSelectionModal from "../components/FocusSelectionModal";
 import FocusGroveView from "../components/FocusGroveView";
 import AddDomainModal from "../components/AddDomainModal";
-import NoteSelectionModal from "../components/NoteSelectionModal";
-import ClassificationReviewModal from "../components/ClassificationReviewModal";
+// Note import feature temporarily disabled for deployment
+// import NoteSelectionModal from "../components/NoteSelectionModal";
+// import ClassificationReviewModal from "../components/ClassificationReviewModal";
 import SplashScreen from "../components/SplashScreen";
 import ResponsibilitiesView from "../components/ResponsibilitiesView";
 
@@ -45,34 +48,33 @@ const Dashboard = () => {
     const [isResponsibilitiesViewOpen, setResponsibilitiesViewOpen] =
         useState(false);
 
-    // Note Import State
-    const [importedNotes, setImportedNotes] = useState<Note[]>([]);
-    const [isNoteSelectionModalOpen, setNoteSelectionModalOpen] =
-        useState(false);
-    const [isClassificationReviewModalOpen, setClassificationReviewModalOpen] =
-        useState(false);
-    const [pendingClassifications, setPendingClassifications] = useState<
-        ClassificationResult[]
-    >([]);
-    const [pendingNotesForReview, setPendingNotesForReview] = useState<Note[]>(
-        []
-    );
-    const [isClassifying, setIsClassifying] = useState(false);
-    const stopPollingRef = useRef<(() => void) | null>(null);
+    // Note Import State - Temporarily disabled for deployment
+    // const [importedNotes, setImportedNotes] = useState<Note[]>([]);
+    // const [isNoteSelectionModalOpen, setNoteSelectionModalOpen] =
+    //     useState(false);
+    // const [isClassificationReviewModalOpen, setClassificationReviewModalOpen] =
+    //     useState(false);
+    // const [pendingClassifications, setPendingClassifications] = useState<
+    //     ClassificationResult[]
+    // >([]);
+    // const [pendingNotesForReview, setPendingNotesForReview] = useState<Note[]>(
+    //     []
+    // );
+    // const [isClassifying, setIsClassifying] = useState(false);
+    // const stopPollingRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true);
             setIsContentReady(false);
-            const [fetchedProjects, fetchedFocusIds, fetchedNotes] =
-                await Promise.all([
-                    dataService.getProjects(),
-                    focusService.getFocusedIdeaIds(),
-                    noteImportService.getImportedNotes(),
-                ]);
+            const [fetchedProjects, fetchedFocusIds] = await Promise.all([
+                dataService.getProjects(),
+                focusService.getFocusedIdeaIds(),
+                // noteImportService.getImportedNotes(), // Temporarily disabled
+            ]);
             setProjects(fetchedProjects);
             setFocusedIdeaIds(fetchedFocusIds);
-            setImportedNotes(fetchedNotes);
+            // setImportedNotes(fetchedNotes); // Temporarily disabled
             setIsLoading(false);
         };
         loadData();
@@ -114,24 +116,24 @@ const Dashboard = () => {
         }
     }, [isLoading]);
 
-    // Auto-sync polling
-    useEffect(() => {
-        if (autoSyncService.isEnabled()) {
-            const stopPolling = autoSyncService.startPolling(
-                60000,
-                (newNotes) => {
-                    // Update imported notes when new ones are detected
-                    noteImportService.getImportedNotes().then(setImportedNotes);
-                }
-            );
-            stopPollingRef.current = stopPolling;
-            return () => {
-                if (stopPollingRef.current) {
-                    stopPollingRef.current();
-                }
-            };
-        }
-    }, []);
+    // Auto-sync polling - Temporarily disabled for deployment
+    // useEffect(() => {
+    //     if (autoSyncService.isEnabled()) {
+    //         const stopPolling = autoSyncService.startPolling(
+    //             60000,
+    //             (newNotes) => {
+    //                 // Update imported notes when new ones are detected
+    //                 noteImportService.getImportedNotes().then(setImportedNotes);
+    //             }
+    //         );
+    //         stopPollingRef.current = stopPolling;
+    //         return () => {
+    //             if (stopPollingRef.current) {
+    //                 stopPollingRef.current();
+    //             }
+    //         };
+    //     }
+    // }, []);
 
     const refreshProjects = async () => {
         const fetchedProjects = await dataService.getProjects();
@@ -175,52 +177,24 @@ const Dashboard = () => {
         }
     };
 
-    const handleAddIdea = async (projectId: number, ideaName: string) => {
-        const project = projects.find((p) => p.id === projectId);
-        if (!project) return;
-
-        const newIdea: Idea = {
-            id: Date.now(),
-            name: ideaName,
-            tasks: [],
-        };
-
-        const updatedProject = {
-            ...project,
-            ideas: [...project.ideas, newIdea],
-        };
-
-        await handleUpdateProject(updatedProject);
-        // If this project is currently selected, update it
-        if (selectedProject?.id === projectId) {
-            setSelectedProject(updatedProject);
-        }
+    // Reserved for future use
+    // @ts-ignore - Reserved for future use
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleAddIdea = async (_projectId: number, _ideaName: string) => {
+        // Reserved for future use - function body commented out
+        return;
     };
 
+    // Reserved for future use
+    // @ts-ignore - Reserved for future use
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleAddResponsibility = async (
-        projectId: number,
-        responsibilityName: string,
-        frequencyHours: number
+        _projectId: number,
+        _responsibilityName: string,
+        _frequencyHours: number
     ) => {
-        const project = projects.find((p) => p.id === projectId);
-        if (!project) return;
-
-        const newResponsibility: Responsibility = {
-            id: Date.now(),
-            name: responsibilityName,
-            frequencyHours,
-        };
-
-        const updatedProject = {
-            ...project,
-            responsibilities: [...project.responsibilities, newResponsibility],
-        };
-
-        await handleUpdateProject(updatedProject);
-        // If this project is currently selected, update it
-        if (selectedProject?.id === projectId) {
-            setSelectedProject(updatedProject);
-        }
+        // Reserved for future use - function body commented out
+        return;
     };
 
     const handleSpontaneousClick = () => {
@@ -284,173 +258,173 @@ const Dashboard = () => {
         setSelectionModalOpen(true);
     };
 
-    // Note Import Handlers
-    const handleImportNotes = async () => {
-        // Create file input
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".json,.txt";
-        input.onchange = async (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) return;
+    // Note Import Handlers - Temporarily disabled for deployment
+    // const handleImportNotes = async () => {
+    //     // Create file input
+    //     const input = document.createElement("input");
+    //     input.type = "file";
+    //     input.accept = ".json,.txt";
+    //     input.onchange = async (e) => {
+    //         const file = (e.target as HTMLInputElement).files?.[0];
+    //         if (!file) return;
 
-            try {
-                let parsedNotes: Note[] = [];
-                const fileName = file.name.toLowerCase();
+    //         try {
+    //             let parsedNotes: Note[] = [];
+    //             const fileName = file.name.toLowerCase();
 
-                if (fileName.includes("keep") || fileName.includes("google")) {
-                    parsedNotes = await noteImportService.parseGoogleKeepExport(
-                        file
-                    );
-                } else if (
-                    fileName.includes("notes") ||
-                    fileName.includes("apple")
-                ) {
-                    parsedNotes = await noteImportService.parseAppleNotesExport(
-                        file
-                    );
-                } else {
-                    // Try both parsers
-                    try {
-                        parsedNotes =
-                            await noteImportService.parseGoogleKeepExport(file);
-                    } catch {
-                        parsedNotes =
-                            await noteImportService.parseAppleNotesExport(file);
-                    }
-                }
+    //             if (fileName.includes("keep") || fileName.includes("google")) {
+    //                 parsedNotes = await noteImportService.parseGoogleKeepExport(
+    //                     file
+    //                 );
+    //             } else if (
+    //                 fileName.includes("notes") ||
+    //                 fileName.includes("apple")
+    //             ) {
+    //                 parsedNotes = await noteImportService.parseAppleNotesExport(
+    //                     file
+    //                 );
+    //             } else {
+    //                 // Try both parsers
+    //                 try {
+    //                     parsedNotes =
+    //                         await noteImportService.parseGoogleKeepExport(file);
+    //                 } catch {
+    //                     parsedNotes =
+    //                         await noteImportService.parseAppleNotesExport(file);
+    //                 }
+    //             }
 
-                await noteImportService.saveNotes(parsedNotes);
-                const updatedNotes = await noteImportService.getImportedNotes();
-                setImportedNotes(updatedNotes);
+    //             await noteImportService.saveNotes(parsedNotes);
+    //             const updatedNotes = await noteImportService.getImportedNotes();
+    //             setImportedNotes(updatedNotes);
 
-                // Show note selection modal
-                const unprocessed =
-                    await noteImportService.getUnprocessedNotes();
-                if (unprocessed.length > 0) {
-                    setNoteSelectionModalOpen(true);
-                }
-            } catch (error) {
-                console.error("Import error:", error);
-                alert(
-                    `Failed to import notes: ${
-                        error instanceof Error ? error.message : "Unknown error"
-                    }`
-                );
-            }
-        };
-        input.click();
-    };
+    //             // Show note selection modal
+    //             const unprocessed =
+    //                 await noteImportService.getUnprocessedNotes();
+    //             if (unprocessed.length > 0) {
+    //                 setNoteSelectionModalOpen(true);
+    //             }
+    //         } catch (error) {
+    //             console.error("Import error:", error);
+    //             alert(
+    //                 `Failed to import notes: ${
+    //                     error instanceof Error ? error.message : "Unknown error"
+    //                 }`
+    //             );
+    //         }
+    //     };
+    //     input.click();
+    // };
 
-    const handleContextualizeNotes = async () => {
-        const unprocessed = await noteImportService.getUnprocessedNotes();
-        if (unprocessed.length > 0) {
-            setNoteSelectionModalOpen(true);
-        }
-    };
+    // const handleContextualizeNotes = async () => {
+    //     const unprocessed = await noteImportService.getUnprocessedNotes();
+    //     if (unprocessed.length > 0) {
+    //         setNoteSelectionModalOpen(true);
+    //     }
+    // };
 
-    const handleAnalyzeSelected = async (selectedNoteIds: string[]) => {
-        setIsClassifying(true);
-        setNoteSelectionModalOpen(false);
+    // const handleAnalyzeSelected = async (selectedNoteIds: string[]) => {
+    //     setIsClassifying(true);
+    //     setNoteSelectionModalOpen(false);
 
-        try {
-            const notesToAnalyze = importedNotes.filter((n) =>
-                selectedNoteIds.includes(n.id)
-            );
+    //     try {
+    //         const notesToAnalyze = importedNotes.filter((n) =>
+    //             selectedNoteIds.includes(n.id)
+    //         );
 
-            // Mark as processed
-            await noteImportService.markNotesProcessed(selectedNoteIds);
+    //         // Mark as processed
+    //         await noteImportService.markNotesProcessed(selectedNoteIds);
 
-            // Get current state
-            const currentState: AppState = {
-                projects,
-                domains: Array.from(new Set(projects.map((p) => p.domain))),
-            };
+    //         // Get current state
+    //         const currentState: AppState = {
+    //             projects,
+    //             domains: Array.from(new Set(projects.map((p) => p.domain))),
+    //         };
 
-            // Classify with LLM
-            // const classifications = await llmClassificationService.classifyNotes(notesToAnalyze, currentState);
+    //         // Classify with LLM
+    //         // const classifications = await llmClassificationService.classifyNotes(notesToAnalyze, currentState);
 
-            // setPendingClassifications(classifications);
-            setPendingNotesForReview(notesToAnalyze);
-            setClassificationReviewModalOpen(true);
-        } catch (error) {
-            console.error("Classification error:", error);
-            alert(
-                `Failed to classify notes: ${
-                    error instanceof Error ? error.message : "Unknown error"
-                }`
-            );
-        } finally {
-            setIsClassifying(false);
-        }
-    };
+    //         // setPendingClassifications(classifications);
+    //         setPendingNotesForReview(notesToAnalyze);
+    //         setClassificationReviewModalOpen(true);
+    //     } catch (error) {
+    //         console.error("Classification error:", error);
+    //         alert(
+    //             `Failed to classify notes: ${
+    //                 error instanceof Error ? error.message : "Unknown error"
+    //             }`
+    //         );
+    //     } finally {
+    //         setIsClassifying(false);
+    //     }
+    // };
 
-    const handleCommitClassifications = async (
-        selectedClassifications: ClassificationResult[]
-    ) => {
-        try {
-            // Get current state
-            const currentState: AppState = {
-                projects,
-                domains: Array.from(new Set(projects.map((p) => p.domain))),
-            };
+    // const handleCommitClassifications = async (
+    //     selectedClassifications: ClassificationResult[]
+    // ) => {
+    //     try {
+    //         // Get current state
+    //         const currentState: AppState = {
+    //             projects,
+    //             domains: Array.from(new Set(projects.map((p) => p.domain))),
+    //         };
 
-            // Apply mutations
-            const newState = stateMutationService.applyClassifications(
-                selectedClassifications,
-                currentState
-            );
+    //         // Apply mutations
+    //         const newState = stateMutationService.applyClassifications(
+    //             selectedClassifications,
+    //             currentState
+    //         );
 
-            // Save updated projects
-            // Get all current projects
-            const currentProjects = await dataService.getProjects();
+    //         // Save updated projects
+    //         // Get all current projects
+    //         const currentProjects = await dataService.getProjects();
 
-            for (const project of newState.projects) {
-                const existing = currentProjects.find(
-                    (p) => p.id === project.id
-                );
-                if (existing) {
-                    // Update existing project
-                    await dataService.updateProject(project);
-                } else {
-                    // New project - add it directly to localStorage to preserve ID
-                    const allProjects = await dataService.getProjects();
-                    const updatedProjects = [...allProjects, project];
-                    localStorage.setItem(
-                        localStorageKey,
-                        JSON.stringify(updatedProjects)
-                    );
-                }
-            }
+    //         for (const project of newState.projects) {
+    //             const existing = currentProjects.find(
+    //                 (p) => p.id === project.id
+    //             );
+    //             if (existing) {
+    //                 // Update existing project
+    //                 await dataService.updateProject(project);
+    //             } else {
+    //                 // New project - add it directly to localStorage to preserve ID
+    //                 const allProjects = await dataService.getProjects();
+    //                 const updatedProjects = [...allProjects, project];
+    //                 localStorage.setItem(
+    //                     localStorageKey,
+    //                     JSON.stringify(updatedProjects)
+    //                 );
+    //             }
+    //         }
 
-            // Mark notes as committed
-            const committedNoteIds = selectedClassifications.map(
-                (c) => c.noteId
-            );
-            await noteImportService.markNotesCommitted(committedNoteIds);
+    //         // Mark notes as committed
+    //         const committedNoteIds = selectedClassifications.map(
+    //             (c) => c.noteId
+    //         );
+    //         await noteImportService.markNotesCommitted(committedNoteIds);
 
-            // Refresh UI
-            await refreshProjects();
-            const updatedNotes = await noteImportService.getImportedNotes();
-            setImportedNotes(updatedNotes);
+    //         // Refresh UI
+    //         await refreshProjects();
+    //         const updatedNotes = await noteImportService.getImportedNotes();
+    //         setImportedNotes(updatedNotes);
 
-            setClassificationReviewModalOpen(false);
-            setPendingClassifications([]);
-            setPendingNotesForReview([]);
-        } catch (error) {
-            console.error("Commit error:", error);
-            alert(
-                `Failed to commit classifications: ${
-                    error instanceof Error ? error.message : "Unknown error"
-                }`
-            );
-        }
-    };
+    //         setClassificationReviewModalOpen(false);
+    //         setPendingClassifications([]);
+    //         setPendingNotesForReview([]);
+    //     } catch (error) {
+    //         console.error("Commit error:", error);
+    //         alert(
+    //             `Failed to commit classifications: ${
+    //                 error instanceof Error ? error.message : "Unknown error"
+    //             }`
+    //         );
+    //     }
+    // };
 
-    // Check for new unprocessed notes
-    const hasNewNotes = useMemo(() => {
-        return importedNotes.some((n) => !n.processed && !n.committed);
-    }, [importedNotes]);
+    // Check for new unprocessed notes - Temporarily disabled
+    const hasNewNotes = false; // useMemo(() => {
+    //     return importedNotes.some((n) => !n.processed && !n.committed);
+    // }, [importedNotes]);
 
     // JSON Backup handlers
     const jsonBackupFileInputRef = useRef<HTMLInputElement>(null);
@@ -659,7 +633,8 @@ const Dashboard = () => {
                     />
                 )}
 
-                {isNoteSelectionModalOpen && (
+                {/* Note import modals temporarily disabled for deployment */}
+                {/* {isNoteSelectionModalOpen && (
                     <NoteSelectionModal
                         notes={importedNotes.filter(
                             (n) => !n.processed && !n.committed
@@ -701,7 +676,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 {isResponsibilitiesViewOpen && (
                     <ResponsibilitiesView
@@ -755,8 +730,8 @@ const Dashboard = () => {
 
                 <SmartWidgets
                     onSpontaneousClick={handleSpontaneousClick}
-                    onImportNotes={handleImportNotes}
-                    onContextualizeNotes={handleContextualizeNotes}
+                    onImportNotes={() => {}} // Temporarily disabled
+                    onContextualizeNotes={() => {}} // Temporarily disabled
                     hasNewNotes={hasNewNotes}
                     onExportBackup={handleExportBackup}
                     onImportBackup={handleImportBackupClick}

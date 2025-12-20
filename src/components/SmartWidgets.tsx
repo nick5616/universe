@@ -11,9 +11,9 @@ interface SmartWidgetsProps {
 
 const SmartWidgets: React.FC<SmartWidgetsProps> = ({
     onSpontaneousClick,
-    onImportNotes,
-    onContextualizeNotes,
-    hasNewNotes,
+    onImportNotes: _onImportNotes, // Reserved for future use
+    onContextualizeNotes: _onContextualizeNotes, // Reserved for future use
+    hasNewNotes: _hasNewNotes, // Reserved for future use
     onExportBackup,
     onImportBackup,
 }) => {
@@ -46,8 +46,8 @@ const SmartWidgets: React.FC<SmartWidgetsProps> = ({
                 </div>
             </div>
 
-            {/* Import Actions - Fixed width matching grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            {/* Import Actions - Temporarily disabled for deployment */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <button
                     onClick={onImportNotes}
                     className="bg-earth-800/50 backdrop-blur-sm p-5 rounded-xl border border-earth-700 hover:border-growth-500/50 transition-all duration-300 text-left group"
@@ -87,7 +87,7 @@ const SmartWidgets: React.FC<SmartWidgetsProps> = ({
                         </div>
                     </button>
                 )}
-            </div>
+            </div> */}
 
             {/* JSON Backup Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

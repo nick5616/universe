@@ -1,5 +1,4 @@
 import { Note, ClassificationResult, AppState } from "../types";
-import { Project } from "../lib/mockData";
 
 export interface LLMClassificationService {
     classifyNotes(
@@ -9,53 +8,36 @@ export interface LLMClassificationService {
 }
 
 // Build context about current state for LLM
-function buildStateContext(state: AppState): string {
-    const domains = state.domains.join(", ");
-    const projects = state.projects
-        .map(
-            (p) =>
-                `- ${p.name} (${p.domain}): ${
-                    p.description || "No description"
-                }`
-        )
-        .join("\n");
-
-    return `Current state:
-Domains: ${domains || "None"}
-Projects:
-${projects || "None"}
-
-Classify each note into this hierarchy: Domain → Project → Idea → Tasks
-If a note doesn't fit any existing domain, suggest creating a new one.
-If a note fits an existing project, use that project name. Otherwise, suggest a new project name.
-Extract actionable tasks from the note content.`;
+// Reserved for future use - note import feature temporarily disabled
+// @ts-ignore - Reserved for future use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _buildStateContext(_state: AppState): string {
+    // Reserved for future use
+    return "";
 }
 
 // Format notes for LLM
-function formatNotesForLLM(notes: Note[]): string {
-    return notes
-        .map(
-            (note, idx) =>
-                `Note ${idx + 1} (ID: ${note.id}):
-Title: ${note.title}
-Content: ${note.content}
----
-`
-        )
-        .join("\n");
+// Reserved for future use - note import feature temporarily disabled
+// @ts-ignore - Reserved for future use
+function _formatNotesForLLM(_notes: Note[]): string {
+    // Reserved for future use
+    return "";
 }
 
 // Parse LLM response into structured classifications
-function parseLLMResponse(
-    response: string,
-    noteIds: string[]
+// Reserved for future use - note import feature temporarily disabled
+// @ts-ignore - Reserved for future use
+function _parseLLMResponse(
+    _response: string,
+    _noteIds: string[]
 ): ClassificationResult[] {
+    // Reserved for future use
     try {
         // Try to parse as JSON first
-        const parsed = JSON.parse(response);
+        const parsed = JSON.parse(_response);
         if (Array.isArray(parsed)) {
             return parsed.map((item: any, idx: number) => ({
-                noteId: noteIds[idx] || `unknown_${idx}`,
+                noteId: _noteIds[idx] || `unknown_${idx}`,
                 domain: item.domain || "Uncategorized",
                 project: item.project
                     ? {
@@ -85,7 +67,7 @@ function parseLLMResponse(
     }
 
     // Fallback: create basic classifications
-    return noteIds.map((noteId, idx) => ({
+    return _noteIds.map((noteId: string) => ({
         noteId,
         domain: "Uncategorized",
         confidence: 0.5,

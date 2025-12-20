@@ -14,7 +14,7 @@ interface ClassificationReviewModalProps {
 const ClassificationReviewModal: React.FC<ClassificationReviewModalProps> = ({
     classifications,
     notes,
-    existingProjects,
+    existingProjects: _existingProjects, // Reserved for future use
     onClose,
     onCommit,
 }) => {
