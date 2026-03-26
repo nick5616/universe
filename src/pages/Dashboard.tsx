@@ -712,6 +712,23 @@ const Dashboard = () => {
                     </button>
                 </div>
 
+                {/* Life Graph Button */}
+                <div className="mb-6">
+                    <a
+                        href="/life-graph"
+                        className="block w-full p-4 bg-gradient-to-r from-earth-800 to-earth-800 hover:from-[#fbbf24]/10 hover:to-[#a78bfa]/10 border-2 border-dashed border-earth-700 hover:border-[#fbbf24]/40 rounded-xl transition-all duration-300 group no-underline"
+                    >
+                        <div className="flex items-center justify-center gap-3">
+                            <span className="text-2xl group-hover:scale-110 transition-transform">
+                                ✦
+                            </span>
+                            <span className="font-semibold text-stone-300 group-hover:text-stone-100 transition-colors">
+                                Life Graph
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
                 {/* Tend to Responsibilities Button */}
                 <div className="mb-6">
                     <button

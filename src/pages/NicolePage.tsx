@@ -1,7 +1,7 @@
 // src/pages/NicolePage.tsx
 // Easter egg — accessible only at /nicole, no link from the main app.
 import React from "react";
-import LifeGraphView, { GraphNodeInput, GraphEdgeInput } from "../components/LifeGraphView";
+import LifeGraphView, { GraphNodeInput, GraphEdgeInput, NICOLE_THEME } from "../components/LifeGraphView";
 
 const NODES: GraphNodeInput[] = [
     { id: "sleep",         label: "Sleep",               layer: "foundation",     status: "active",  desc: "The non-negotiable substrate. Everything else degrades without this." },
@@ -66,7 +66,7 @@ const NicolePage: React.FC = () => (
     <LifeGraphView
         nodes={NODES}
         edges={EDGES}
-        colorMode="vivid"
+        theme={NICOLE_THEME}
         title="Nicole's Life Graph"
         subtitle="roles · prerequisites · associations · march 2026"
     />
