@@ -25,11 +25,12 @@ export const NICOLE_THEME: GraphTheme = {
 
 export const PUBLIC_THEME: GraphTheme = {
     layerColors: {
-        foundation:     "#fbbf24",
-        infrastructure: "#a78bfa",
-        maker:          "#34d399",
-        performer:      "#f472b6",
-        body:           "#60a5fa",
+        foundation:  "#fbbf24",
+        body:        "#60a5fa",
+        mind:        "#a78bfa",
+        maker:       "#34d399",
+        connection:  "#f472b6",
+        spirit:      "#fb923c",
     },
     fallbackColor:  "#e2e2e2",
     showStatusDots: false,
@@ -53,6 +54,20 @@ export interface GraphEdgeInput {
     type: EdgeType;
 }
 
+// ── Data schema (import / export) ─────────────────────────────────────────────
+
+export interface GraphMeta {
+    title: string;
+    subtitle?: string;
+    version?: string;
+}
+
+export interface LifeGraphData {
+    meta: GraphMeta;
+    nodes: GraphNodeInput[];
+    edges: GraphEdgeInput[];
+}
+
 interface LifeGraphViewProps {
     nodes: GraphNodeInput[];
     edges: GraphEdgeInput[];
@@ -61,6 +76,10 @@ interface LifeGraphViewProps {
     subtitle?: string;
     /** If provided, shows an edit button bottom-left when nothing is hovered */
     onEdit?: () => void;
+    /** If provided, shows an export button — called with no args, parent assembles the JSON */
+    onExport?: () => void;
+    /** If provided, shows an import button — called with parsed LifeGraphData */
+    onImport?: (data: LifeGraphData) => void;
 }
 
 // ── Internal working type ─────────────────────────────────────────────────────
@@ -165,6 +184,8 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
     title = "Life Graph",
     subtitle = "",
     onEdit,
+    onExport,
+    onImport,
 }) => {
     const canvasRef  = useRef<HTMLCanvasElement>(null);
     const stateRef   = useRef({
@@ -176,12 +197,36 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
     });
     const nodesRef   = useRef<WorkingNode[]>([]);
 
-    const bannerRef   = useRef<HTMLDivElement>(null);
-    const hbTitleRef  = useRef<HTMLSpanElement>(null);
-    const hbDescRef   = useRef<HTMLSpanElement>(null);
-    const hbStatusRef = useRef<HTMLSpanElement>(null);
-    const hbEdgesRef  = useRef<HTMLDivElement>(null);
-    const editBtnRef  = useRef<HTMLButtonElement>(null);
+    const bannerRef     = useRef<HTMLDivElement>(null);
+    const hbTitleRef    = useRef<HTMLSpanElement>(null);
+    const hbDescRef     = useRef<HTMLSpanElement>(null);
+    const hbStatusRef   = useRef<HTMLSpanElement>(null);
+    const hbEdgesRef    = useRef<HTMLDivElement>(null);
+    const editBtnRef    = useRef<HTMLButtonElement>(null);
+    const importBtnRef  = useRef<HTMLButtonElement>(null);
+    const exportBtnRef  = useRef<HTMLButtonElement>(null);
+    const fileInputRef  = useRef<HTMLInputElement>(null);
+
+    const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !onImport) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const data = JSON.parse(ev.target?.result as string) as LifeGraphData;
+                if (!data.meta || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
+                    alert("Invalid life graph JSON — expected { meta, nodes, edges }.");
+                    return;
+                }
+                onImport(data);
+            } catch {
+                alert("Failed to parse JSON file.");
+            }
+        };
+        reader.readAsText(file);
+        // reset so the same file can be re-imported
+        e.target.value = "";
+    };
 
     // ── Canvas / render loop ──────────────────────────────────────────────────
     useEffect(() => {
@@ -350,7 +395,7 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
 
                 const isConn = s.hoveredNode && s.hoveredNode.id!==node.id &&
                     edges.some(e=>(e.s===s.hoveredNode!.id&&e.t===node.id)||(e.t===s.hoveredNode!.id&&e.s===node.id));
-                const lA = isHov?1:isConn?0.95:(p.scale>0.5?0.6:0.38);
+                const lA = isHov?1:isConn?0.98:(p.scale>0.5?0.88:0.65);
                 ctx.font=`${isHov||isConn?500:300} ${Math.max(9,11*p.scale)}px 'DM Mono',monospace`;
                 ctx.fillStyle=`rgba(255,255,255,${lA})`; ctx.textAlign="center";
                 ctx.fillText(node.label, p.px, p.py+nr+Math.max(10,13*p.scale));
@@ -384,10 +429,11 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
             const banner  = bannerRef.current;
             const editBtn = editBtnRef.current;
 
-            if (editBtn) {
-                editBtn.style.opacity      = node ? "0" : "1";
-                editBtn.style.pointerEvents = node ? "none" : "auto";
-            }
+            const showBtns = node ? "0" : "1";
+            const ptBtns   = node ? "none" : "auto";
+            if (editBtn) { editBtn.style.opacity = showBtns; editBtn.style.pointerEvents = ptBtns; }
+            if (importBtnRef.current) { importBtnRef.current.style.opacity = showBtns; importBtnRef.current.style.pointerEvents = ptBtns; }
+            if (exportBtnRef.current) { exportBtnRef.current.style.opacity = showBtns; exportBtnRef.current.style.pointerEvents = ptBtns; }
 
             if (banner) {
                 if (node) {
@@ -437,10 +483,10 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
         <div style={{ position:"fixed", inset:0, zIndex:9999, background:"#0a0a0f", fontFamily:"'DM Mono',monospace", overflow:"hidden" }}>
             <style>{`
                 .lgv-visible { opacity:1!important; transform:translateY(0)!important; }
-                .lgv-edge { font-size:9px; letter-spacing:.04em; display:inline-flex; align-items:center; gap:5px; color:rgba(255,255,255,.38); margin-right:14px; }
-                .lgv-ea   { opacity:.5; }
+                .lgv-edge { font-size:9px; letter-spacing:.04em; display:inline-flex; align-items:center; gap:5px; color:rgba(255,255,255,.75); margin-right:14px; }
+                .lgv-ea   { opacity:.7; }
                 .lgv-el   { font-weight:400; }
-                .lgv-et   { font-size:8px; letter-spacing:.06em; text-transform:uppercase; opacity:.45; }
+                .lgv-et   { font-size:8px; letter-spacing:.06em; text-transform:uppercase; opacity:.65; }
             `}</style>
 
             <canvas ref={canvasRef} style={{ position:"absolute", inset:0, cursor:"grab" }} />
@@ -448,11 +494,11 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
             {/* Header */}
             <div style={{ position:"absolute", top:28, left:32, pointerEvents:"none" }}>
                 <div style={{ fontFamily:"'Instrument Serif',serif", fontStyle:"italic", fontSize:22, color:"rgba(255,255,255,.85)", letterSpacing:"-0.02em", lineHeight:1 }}>{title}</div>
-                {subtitle && <div style={{ fontSize:10, color:"rgba(255,255,255,.35)", marginTop:5, letterSpacing:"0.08em", textTransform:"uppercase" }}>{subtitle}</div>}
+                {subtitle && <div style={{ fontSize:10, color:"rgba(255,255,255,.7)", marginTop:5, letterSpacing:"0.08em", textTransform:"uppercase" }}>{subtitle}</div>}
             </div>
 
             {/* Instructions */}
-            <div style={{ position:"absolute", top:28, right:32, fontSize:9, color:"rgba(255,255,255,.35)", letterSpacing:"0.06em", textTransform:"uppercase", textAlign:"right", lineHeight:2, pointerEvents:"none" }}>
+            <div style={{ position:"absolute", top:28, right:32, fontSize:9, color:"rgba(255,255,255,.65)", letterSpacing:"0.06em", textTransform:"uppercase", textAlign:"right", lineHeight:2, pointerEvents:"none" }}>
                 drag to rotate · scroll to zoom<br/>hover nodes to explore
             </div>
 
@@ -460,8 +506,8 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
             <div ref={bannerRef} style={{ position:"absolute", bottom:44, left:0, right:0, minHeight:52, background:"rgba(14,14,22,.97)", borderTop:"1px solid rgba(255,255,255,.1)", display:"flex", flexDirection:"column", justifyContent:"center", gap:7, padding:"10px 32px 12px", opacity:0, transform:"translateY(4px)", transition:"opacity .18s ease, transform .18s ease", pointerEvents:"none" }}>
                 <div style={{ display:"flex", alignItems:"baseline", gap:12, flexWrap:"wrap" }}>
                     <span ref={hbTitleRef}  style={{ fontFamily:"'Instrument Serif',serif", fontStyle:"italic", fontSize:16, whiteSpace:"nowrap", flexShrink:0 }}/>
-                    <span style={{ color:"rgba(255,255,255,.2)", fontSize:11, flexShrink:0 }}>—</span>
-                    <span ref={hbDescRef}   style={{ fontSize:10.5, color:"rgba(255,255,255,.55)", letterSpacing:"0.025em", flex:1, minWidth:160, lineHeight:1.5 }}/>
+                    <span style={{ color:"rgba(255,255,255,.55)", fontSize:11, flexShrink:0 }}>—</span>
+                    <span ref={hbDescRef}   style={{ fontSize:10.5, color:"rgba(255,255,255,.88)", letterSpacing:"0.025em", flex:1, minWidth:160, lineHeight:1.5 }}/>
                     <span ref={hbStatusRef} style={{ fontSize:9, letterSpacing:"0.1em", textTransform:"uppercase", padding:"3px 8px", borderRadius:3, background:"rgba(255,255,255,.07)", whiteSpace:"nowrap", flexShrink:0, alignSelf:"center" }}/>
                 </div>
                 <div ref={hbEdgesRef} style={{ display:"flex", flexWrap:"wrap", gap:"6px 0" }}/>
@@ -472,7 +518,7 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
                 {layerLegend.length > 0 && (
                     <div style={{ display:"flex", alignItems:"center", gap:14, paddingRight:20, height:"100%", borderRight:"1px solid rgba(255,255,255,.07)", flexShrink:0 }}>
                         {layerLegend.map(([layer, color]) => (
-                            <div key={layer} style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:"rgba(255,255,255,.35)", letterSpacing:"0.07em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
+                            <div key={layer} style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:"rgba(255,255,255,.7)", letterSpacing:"0.07em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
                                 <div style={{ width:7, height:7, borderRadius:"50%", background:color, flexShrink:0 }}/>
                                 {layer}
                             </div>
@@ -480,11 +526,11 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
                     </div>
                 )}
                 <div style={{ display:"flex", alignItems:"center", gap:14, flexShrink:0 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:"rgba(255,255,255,.35)", letterSpacing:"0.07em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
-                        <div style={{ width:20, height:1, background:"rgba(255,255,255,.4)", flexShrink:0 }}/>prereq
+                    <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:"rgba(255,255,255,.7)", letterSpacing:"0.07em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
+                        <div style={{ width:20, height:1, background:"rgba(255,255,255,.65)", flexShrink:0 }}/>prereq
                     </div>
-                    <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:"rgba(255,255,255,.35)", letterSpacing:"0.07em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
-                        <div style={{ width:20, height:1, borderTop:"1px dashed rgba(255,255,255,.25)", flexShrink:0 }}/>assoc
+                    <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:"rgba(255,255,255,.7)", letterSpacing:"0.07em", textTransform:"uppercase", whiteSpace:"nowrap" }}>
+                        <div style={{ width:20, height:1, borderTop:"1px dashed rgba(255,255,255,.5)", flexShrink:0 }}/>assoc
                     </div>
                 </div>
             </div>
@@ -494,12 +540,49 @@ const LifeGraphView: React.FC<LifeGraphViewProps> = ({
                 <button
                     ref={editBtnRef}
                     onClick={onEdit}
-                    style={{ position:"absolute", bottom:56, left:28, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.15)", color:"rgba(255,255,255,.5)", borderRadius:6, padding:"5px 14px", fontSize:10, letterSpacing:"0.08em", textTransform:"uppercase", cursor:"pointer", transition:"opacity .2s ease, background .15s ease", fontFamily:"'DM Mono',monospace" }}
+                    style={{ position:"absolute", bottom:56, left:28, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.15)", color:"rgba(255,255,255,.82)", borderRadius:6, padding:"5px 14px", fontSize:10, letterSpacing:"0.08em", textTransform:"uppercase", cursor:"pointer", transition:"opacity .2s ease, background .15s ease", fontFamily:"'DM Mono',monospace" }}
                     onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.12)"}
                     onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.06)"}
                 >
                     ✎ edit graph
                 </button>
+            )}
+
+            {/* Import / Export buttons — hidden while hovering a node */}
+            {(onImport || onExport) && (
+                <div style={{ position:"absolute", bottom:56, right:28, display:"flex", gap:8, transition:"opacity .2s ease" }}>
+                    {onExport && (
+                        <button
+                            ref={exportBtnRef}
+                            onClick={onExport}
+                            style={{ background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.15)", color:"rgba(255,255,255,.82)", borderRadius:6, padding:"5px 14px", fontSize:10, letterSpacing:"0.08em", textTransform:"uppercase", cursor:"pointer", transition:"opacity .2s ease, background .15s ease", fontFamily:"'DM Mono',monospace" }}
+                            onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.12)"}
+                            onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.06)"}
+                        >
+                            ↓ export json
+                        </button>
+                    )}
+                    {onImport && (
+                        <>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".json,application/json"
+                                style={{ display:"none" }}
+                                onChange={handleImportFile}
+                            />
+                            <button
+                                ref={importBtnRef}
+                                onClick={() => fileInputRef.current?.click()}
+                                style={{ background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.15)", color:"rgba(255,255,255,.82)", borderRadius:6, padding:"5px 14px", fontSize:10, letterSpacing:"0.08em", textTransform:"uppercase", cursor:"pointer", transition:"opacity .2s ease, background .15s ease", fontFamily:"'DM Mono',monospace" }}
+                                onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.12)"}
+                                onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.06)"}
+                            >
+                                ↑ import json
+                            </button>
+                        </>
+                    )}
+                </div>
             )}
         </div>
     );
